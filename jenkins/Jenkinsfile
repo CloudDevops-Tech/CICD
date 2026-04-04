@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('git checkout') {
+            steps {
+               git branch: 'main', url: 'https://github.com/CloudDevops-Tech/Terraform.git'
+            }
+        }
+         stage('init') {
+            steps {
+                dir('Day1_Terraform_Basic_Config') {
+                sh 'terraform init'
+                }
+            }
+        }
+        stage('plan') {
+            steps {
+                dir('Day1_Terraform_Basic_Config') {
+                sh 'terraform plan'
+                }
+            }
+        }
+         stage('plan approve') {
+            steps {
+                input "Do you want to apply Changes"
+            }
+        }
+        stage('apply') {
+            steps {
+                dir('Day1_Terraform_Basic_Config') {
+                sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+     }
+}
