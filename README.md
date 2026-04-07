@@ -13,3 +13,4 @@
 ### Day 2
 - Created Infrastructure using GitHub Actions Workflow pipeline by using Terraform.
 - Automated deployment of a Python app to an EC2 instance using GitHub Actions via SSH.
+-Implemented CI/CD pipeline using Jenkins to deploy a Python application from GitHub to an Ubuntu EC2 instance via SSH.
