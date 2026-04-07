@@ -5,7 +5,7 @@ pipeline {
 
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/CloudDevops-Tech/CICD.git'
+                git branch: 'main', url: 'https://github.com/CloudDevops-Tech/CICD.git'
             }
         }
 
@@ -14,21 +14,15 @@ pipeline {
                 sh '''
                 ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/pythonkey.pem ubuntu@13.201.64.222 << 'EOF'
 
-                # Go to app folder or clone
                 cd /home/ubuntu/app || git clone https://github.com/CloudDevops-Tech/CICD.git /home/ubuntu/app
-
                 cd /home/ubuntu/app
 
-                # Pull latest code
                 git pull origin main
 
-                # Install dependencies
                 pip3 install -r requirements.txt
 
-                # Stop old app
                 pkill -f app.py || true
 
-                # Run app
                 nohup python3 app.py > output.log 2>&1 &
 
                 EOF
