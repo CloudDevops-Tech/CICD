@@ -2,55 +2,36 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Clean Workspace') {
+        stage('git checkout') {
             steps {
-                cleanWs()
+               git branch: 'main', url: 'https://github.com/CloudDevops-Tech/CICD.git'
             }
         }
-
-        stage('Git Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/CloudDevops-Tech/CICD.git'
-            }
-        }
-
-        stage('Terraform Init') {
+         stage('init') {
             steps {
                 dir('Day1_Terraform_Basic_Config') {
-                    sh 'terraform init'
+                sh 'terraform init'
                 }
             }
         }
-
-        stage('Terraform Validate') {
+        stage('plan') {
             steps {
                 dir('Day1_Terraform_Basic_Config') {
-                    sh 'terraform validate'
+                sh 'terraform plan'
                 }
             }
         }
-
-        stage('Terraform Plan') {
+         stage('plan approve') {
+            steps {
+                input "Do you want to apply Changes"
+            }
+        }
+        stage('apply') {
             steps {
                 dir('Day1_Terraform_Basic_Config') {
-                    sh 'terraform plan'
+                sh 'terraform apply -auto-approve'
                 }
             }
         }
-
-        stage('Approval') {
-            steps {
-                input "Do you want to apply changes?"
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                dir('Day1_Terraform_Basic_Config') {
-                    sh 'terraform apply -auto-approve'
-                }
-            }
-        }
-    }
+     }
 }
