@@ -1,58 +1,39 @@
-name: Deploy Python App to EC2
+pipeline {
+    agent any
 
-# Runs automatically when code is pushed to main branch
-on:
-  push:
-    branches:
-      - main
+    stages {
 
-jobs:
-  deploy:
-    # GitHub Actions runner (source machine)
-    runs-on: ubuntu-latest     
+        stage('Clone Repo') {
+            steps {
+                git 'https://github.com/CloudDevops-Tech/CICD.git'
+            }
+        }
 
-    steps:
+        stage('Deploy to Ubuntu EC2') {
+            steps {
+                sh '''
+                ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/pythonkey.pem ubuntu@13.201.64.222 << 'EOF'
 
-    # Download your repository code into the runner
-    - name: Checkout repository
-      uses: actions/checkout@v3
+                # Go to app folder or clone
+                cd /home/ubuntu/app || git clone https://github.com/CloudDevops-Tech/CICD.git /home/ubuntu/app
 
-    # Setup SSH so runner can connect to EC2
-    - name: Setup SSH
-      run: |
-        mkdir -p $HOME/.ssh
-        rm -f $HOME/.ssh/id_rsa
+                cd /home/ubuntu/app
 
-        # Add private key stored in GitHub Secrets
-        echo "${{ secrets.EC2_SSH_KEY }}" > $HOME/.ssh/id_rsa
+                # Pull latest code
+                git pull origin main
 
-        # Set correct permission for SSH key
-        chmod 600 $HOME/.ssh/id_rsa
+                # Install dependencies
+                pip3 install -r requirements.txt
 
-        # Add EC2 host to known_hosts to avoid prompt
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> $HOME/.ssh/known_hosts
+                # Stop old app
+                pkill -f app.py || true
 
-    # Connect to EC2 and deploy the Python app
-    - name: Deploy to EC2    #Target
-      run: |
-        ssh -i $HOME/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+                # Run app
+                nohup python3 app.py > output.log 2>&1 &
 
-          # Go to app folder or clone repo if it doesn't exist
-          cd /home/ubuntu/app || git clone https://github.com/CloudDevops-Tech/CICD.git /home/ubuntu/app
-
-          # Enter project directory
-          cd /home/ubuntu/app
-
-          # Pull latest code from GitHub
-          git pull origin main
-
-          # Install required Python packages
-          pip3 install -r requirements.txt
-
-          # Stop existing app if running
-          pkill -f app.py || true
-
-          # Start app in background and log output
-          nohup python3 app.py > output.log 2>&1 &
-
-        EOF
+                EOF
+                '''
+            }
+        }
+    }
+}
